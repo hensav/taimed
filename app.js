@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const { json: jsonParser, urlencoded: urlencodedParser } = require('body-parser')
+
 let path = require('path')
 
 app.use(express.static(path.join(__dirname, 'public')))

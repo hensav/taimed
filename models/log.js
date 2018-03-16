@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const schema = mongoose.Schema({
     board: Number,
     moisture: Number,
-    isGrown: Boolean
+    isGrown: { type: Boolean, default: false }
   },
   {
     timestamps: true
