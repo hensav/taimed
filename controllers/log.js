@@ -30,12 +30,31 @@ exports.getAverage = async (req, res) => {
         $group:
           {
             _id: "$board",
-            avgMoisture: { $avg: "$moisture" }
+            avgMoisture: { $avg: "$moisture" },
+            isGrown: { $push:  { isGrown: "$isGrown"} },
+            time: { $push:  { createdAt: "$createdAt"} }
+
           }
       }
     ]
   )
-  return res.status(201).send({ avg })
+
+  const getLatestDate = arr =>
+    arr.length > 0 ? arr.reduce((m, i) => (i.createdAt > m) && i || m, "").createdAt : null
+
+  let data = avg.map(person => {
+    let grown = person.isGrown.filter(x => x.isGrown === true)
+
+    if(grown.length > 0) {
+      person.isGrown = "true"
+      person.time = getLatestDate(person.time)
+    } else {
+      person.isGrown = "false"
+      person.time = ""
+    }
+    return person
+  })
+  return res.status(201).send({ data })
 }
 
 exports.getFinished = async (req, res) => {

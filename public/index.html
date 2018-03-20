@@ -14,61 +14,110 @@
 </head>
 <body>
 <main role="main" class="container">
-    <canvas id="myChart" width="400" height="400"></canvas>
+    <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <a class="nav-item nav-link active" id="nav-average-tab" data-toggle="tab" href="#nav-average" role="tab" aria-controls="nav-average" aria-selected="true">Keskimine niiskus</a>
+            <a class="nav-item nav-link" id="nav-top-tab" data-toggle="tab" href="#nav-top" role="tab" aria-controls="nav-top" aria-selected="false">Edetabel</a>
+        </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-average" role="tabpanel" aria-labelledby="nav-average-tab">
+            <div>
+                <canvas id="moisture" width="400" height="400"></canvas>
+            </div>
+            <div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="nav-top" role="tabpanel" aria-labelledby="nav-top-tab">
+            <div>
+                <div class="table-responsive-sm">
+                    <table class="table">
+                        <tbody id="leaderBoard">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 <script>
-  const ctx = document.getElementById("myChart");
-
   window.onload = () => {
+    const grab = id => document.getElementById(id)
+
     fetch("/api/getAverage")
       .then(res => res.json())
       .then(res => {
-        console.log(res)
+        let labels = res.data.map(x => x._id)
+        let moisture = res.data.map(x => x.avgMoisture)
 
-        let labels = res.avg.map(x => x._id)
-        let moisture = res.avg.map(x => x.avgMoisture)
+        let grown = res.data.filter(x => x.isGrown === "true")
+        let positioned = sortByDate(grown).map(x=> {
+          x.position = grown.indexOf(x)+1
+          return x
+        })
 
-        let data =  {
-          labels: labels,
-            datasets: [{
-            label: 'Niiskuse tase',
-            data: moisture,
-            backgroundColor: [
-              'rgba(255, 99, 132, 0.2)',
-              'rgba(54, 162, 235, 0.2)',
-              'rgba(255, 206, 86, 0.2)',
-              'rgba(75, 192, 192, 0.2)',
-              'rgba(153, 102, 255, 0.2)',
-              'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-              'rgba(255,99,132,1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-          }]
+        grab("leaderBoard").innerHTML = table(positioned)
+
+        const color = {
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)',
+            'rgba(54, 162, 235, 0.2)',
+            'rgba(255, 206, 86, 0.2)',
+            'rgba(75, 192, 192, 0.2)',
+            'rgba(153, 102, 255, 0.2)',
+            'rgba(255, 159, 64, 0.2)'
+          ],
+          borderColor: [
+            'rgba(255,99,132,1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)'
+          ]}
+
+        const options = {
+          maintainAspectRatio: false,
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero:true
+              }
+            }]
+          }
         }
 
-        let myChart = new Chart(ctx, {
+        let myChart = new Chart(grab("moisture"), {
           type: 'bar',
-          data: data,
-          options: {
-            maintainAspectRatio: false,
-            scales: {
-              yAxes: [{
-                ticks: {
-                  beginAtZero:true
-                }
-              }]
-            }
-          }
-        });
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Niiskuse tase',
+              data: moisture,
+              backgroundColor: color.backgroundColor,
+              borderColor: color.borderColor,
+              borderWidth: 1
+            }]
+          },
+          options: options
+        })
       })
   }
+
+  const sortByDate = arr => {
+    return arr.sort((a, b) => {
+      return (a.time < b.time) ? -1 : ((a.time > b.time) ? 1 : 0);
+    });
+  }
+
+  const table = input => `${
+    input.map(x => `
+        <tr>
+        <td class="time">${x.position}</td>
+        <td class="val">${x._id}</td>
+        </tr>`).join(" ")
+  }`
+
 </script>
 </body>
 </html>
