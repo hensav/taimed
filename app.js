@@ -1,9 +1,12 @@
 const express = require('express')
 const app = express()
+const cors = require('cors')
+
 const { json: jsonParser, urlencoded: urlencodedParser } = require('body-parser')
 
 let path = require('path')
 
+app.use(cors({origin: '*'}))
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.set('json spaces', 2)

@@ -56,8 +56,3 @@ exports.getAverage = async (req, res) => {
   })
   return res.status(201).send({ data })
 }
-
-exports.getFinished = async (req, res) => {
-  const finished =  await Log.find( { isGrown: { $all: [ true ] } } )
-  return res.status(201).send({ finished })
-}
